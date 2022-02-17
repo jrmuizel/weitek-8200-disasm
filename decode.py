@@ -5,16 +5,16 @@ import sys
 
 # Based on http://www.bitsavers.org/components/weitek/XL/XL-8236_22-Bit_Raster_Code_Sequencer_Oct88.pdf
 # and http://www.bitsavers.org/components/weitek/XL/XL-8237_32-Bit_Raster_Image_Processor_Oct88.pdf
-
+verbose = False
 some_code = open(sys.argv[1], "rb").read()
 def decode_8237(insn):
     rcs = insn >> 24
     if rcs == 0:
         return "transfer"
     elif rcs <= 3:
-        return "long rcs"
+        return "long rcs" if verbose else ""
     elif rcs & 0b0010000:
-        return "long rcs"
+        return "long rcs" if verbose else ""
     op = (insn >> 21) & 7
     if op == 0b100:
         return "arith"
@@ -61,10 +61,19 @@ def decode_8237(insn):
             elif op2 == 0b00:
                 is_store = (insn >> 14) & 1
                 ra = (insn >> 16) & 0x1f
+                rb = insn & 0x1f
+                siz = (insn >> 11) & 3
+                size = ["byte", "halfword", "tri-byte", "word"][siz]
+                s = (insn >> 13) & 1
+                sign = ["unsigned", "signed"][s]
                 if is_store == 1:
-                    return ("byte align store", ra)
+                    return "${} := ${} align {} {}".format(ra, rb, sign, size)
                 else:
-                    return ("byte align load", ra)
+                    e = (insn >> 15) & 1
+                    if e:
+                        return "mem[adr] := ${}".format(ra)
+                    else:
+                        return "mem[adr] := ${} align {} {}".format(rb, sign, size)
             elif op2 == 0b11:
                 ext = (insn >> 11) & 0x1f
                 if ext == 0b11101:
@@ -106,10 +115,10 @@ def decode_8236(insn):
             imm24 = insn & ((1<<24)-1)
             return("decrement stack and branch or pop if zero", imm24)
         elif next5 == 0b00110:
-            return("continue")
+            return "continue" if verbose else ""
         elif next5 == 0b00010:
             imm24 = insn & ((1<<24)-1)
-            return("branch", hex(cfa + imm24))
+            return "branch {}".format(hex(cfa + imm24))
         elif next5 == 0:
             next3 = (insn >> (16 + 5)) & 7
             if next3 == 0b001:
