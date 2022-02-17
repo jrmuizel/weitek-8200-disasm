@@ -7,6 +7,13 @@ import sys
 # and http://www.bitsavers.org/components/weitek/XL/XL-8237_32-Bit_Raster_Image_Processor_Oct88.pdf
 verbose = False
 some_code = open(sys.argv[1], "rb").read()
+
+def sign_extend(x, width):
+    if (x & (1<<(width - 1))):
+        return -(((~x)&((1<<width)-1))+1)
+    else:
+        return x
+
 def decode_8237(insn):
     rcs = insn >> 24
     if rcs == 0:
@@ -108,7 +115,7 @@ def decode_8236(insn):
     top4 = (insn >> 28)
     if top4 == 1:
         imm28 = insn & ((1<<28)-1)
-        return ("subroutine call", hex(cfa + imm28))
+        return ("subroutine call", hex(cfa + sign_extend(imm28, 28)))
     elif top3 == 0:
         next5 = (insn >> 24) & 0x3f
         if next5 == 0b00001:
