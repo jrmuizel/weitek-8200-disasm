@@ -166,7 +166,7 @@ def decode_8236(insn):
         return("store coprocessor")
     elif top3 == 0b110:
         rd = (insn >> 24) & 0x3f
-        return("load RIP", rd)
+        return "${} := mem[adr]".format(rd)
     elif top3 == 0b111:
         rd = (insn >> 24) & 0x3f
         return("load coprocessor", rd)
