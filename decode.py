@@ -27,7 +27,11 @@ def decode_8237(insn):
         return "arith"
     elif op == 0b101:
         if (insn >> 10) & 1:
-            return "add signed immediate"
+            # add signed immediate
+            ra = (insn >> 16) & 0x1f
+            rc = (insn >> 11) & 0x1f
+            imm10 = sign_extend(insn & ((1<<10)-1), 10)
+            return "${} := ${} + {}".format(rc, ra, imm10)
         else:
             return "logical"
     elif op == 0b000:
