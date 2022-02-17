@@ -155,6 +155,8 @@ def decode_8236(insn):
             return "Override neutralization of subroutine call shadow"
         elif next5 == 0b00101:
             return "reverse neutralization"
+        elif next5 == 0b01001:
+            return "Store RIP"
         else:
             return("bad", next5)
     elif top3 == 0b100:
