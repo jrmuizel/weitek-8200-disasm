@@ -24,7 +24,15 @@ def decode_8237(insn):
         return "long rcs" if verbose else ""
     op = (insn >> 21) & 7
     if op == 0b100:
-        return "arith"
+        ext = (insn >> 7) & 0xf
+        cn = (insn >> 5) & 0x3
+        rc = (insn >> 11) & 0x1f
+        rb = insn & 0x1f
+        imm5 = rb
+        ra = (insn >> 16) & 0x1f
+        if ext == 0b1100:
+            return "c, ${} := ${} + {}".format(rc, ra, imm5)
+        return ("arith", ext, cn, rc, ra, rb)
     elif op == 0b101:
         if (insn >> 10) & 1:
             # add signed immediate
@@ -78,13 +86,14 @@ def decode_8237(insn):
                 s = (insn >> 13) & 1
                 sign = ["unsigned", "signed"][s]
                 if is_store == 1:
-                    return "${} := ${} align {} {}".format(ra, rb, sign, size)
-                else:
                     e = (insn >> 15) & 1
                     if e:
                         return "mem[adr] := ${}".format(ra)
                     else:
                         return "mem[adr] := ${} align {} {}".format(rb, sign, size)
+                else:
+                    # Byte align for load data
+                    return "${} := ${}[adr] align {} {}".format(ra, rb, sign, size)
             elif op2 == 0b11:
                 ext = (insn >> 11) & 0x1f
                 if ext == 0b11101:
@@ -99,7 +108,8 @@ def decode_8237(insn):
         elif ext == 0b010:
             return "load/store indexed, modify before"
         elif ext == 0b011:
-            return "adr := ${} := ${} + ({} << {})".format(rc, ra, imm5, ixs)
+            # load/store signed displacement, modify before
+            return "adr := ${} := ${} + ({} << {})".format(rc, ra, sign_extend(imm5, 5), ixs)
         else:
             return ("load/store address with index/signed displacement", ext)
     elif op == 0b110:
