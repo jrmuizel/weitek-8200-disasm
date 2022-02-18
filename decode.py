@@ -104,7 +104,8 @@ def decode_8237(insn):
         elif ext == 0b000:
             return "load/store indexed, modify after"
         elif ext == 0b001:
-            return "load/store signed displacement, modify after"
+            # load/store signed displacement, modify after
+            return "adr := ${}, ${} := ${} + ({} << {})".format(ra, rc, ra, sign_extend(imm5, 5), ixs)
         elif ext == 0b010:
             return "load/store indexed, modify before"
         elif ext == 0b011:
