@@ -30,7 +30,14 @@ def decode_8237(insn):
         rb = insn & 0x1f
         imm5 = rb
         ra = (insn >> 16) & 0x1f
-        if ext == 0b1100:
+        if ext == 0b1000:
+            # two's complement add
+            return "c, ${} := ${} + ${}".format(rc, rb, ra)
+        elif ext == 0b1001:
+            # two's complement subtract
+            return "c, ${} := ${} - ${}".format(rc, rb, ra)
+        elif ext == 0b1100:
+            # two's complement add immediate
             return "c, ${} := ${} + {}".format(rc, ra, imm5)
         return ("arith", ext, cn, rc, ra, rb)
     elif op == 0b101:
