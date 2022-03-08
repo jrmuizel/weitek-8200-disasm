@@ -148,6 +148,8 @@ def decode_8236(insn):
         elif next5 == 0b00010:
             imm24 = insn & ((1<<24)-1)
             return "branch {}".format(hex(cfa + imm24))
+        elif next5 == 0b00111:
+            return "loop enter"
         elif next5 == 0:
             next3 = (insn >> (16 + 5)) & 7
             if next3 == 0b001:
